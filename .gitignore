@@ -1,3 +1,4 @@
 # IntelliJ configuration
-.idea/
+.gradle/
+build/
 maia-dataset.iml
