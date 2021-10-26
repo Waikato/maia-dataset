@@ -2,7 +2,7 @@ package māia.ml.dataset.view
 
 import māia.util.map
 import māia.ml.dataset.DataColumn
-import māia.ml.dataset.DataColumnHeader
+import māia.ml.dataset.headers.header.DataColumnHeader
 import māia.ml.dataset.util.translateRow
 
 /**
@@ -11,42 +11,39 @@ import māia.ml.dataset.util.translateRow
  * @param source    The source data-column to view.
  * @param rows      The rows of the data-column to view, or null for all rows.
  */
-open class DataColumnView(
-        protected val source : DataColumn,
+open class DataColumnView<out T>(
+        source : DataColumn<T>,
         protected val rows: List<Int>? = null
-) : DataColumn {
+) : DataColumn<T> {
 
-    override val header : DataColumnHeader
-        get() = source.header
+    protected open val source = source
+
+    override val header : DataColumnHeader get() = source.header
 
     override val numRows : Int
         get() = rows?.size ?: source.numRows
 
-    override fun rowIterator() : Iterator<Any?> {
+    override fun rowIterator() : Iterator<T> {
         if (rows == null)
             return source.rowIterator()
 
-        return rows
-                .iterator()
-                .map { source.getRow(it) }
+        return rows.iterator().map { source.getRow(it) }
     }
 
-    override fun getRow(rowIndex : Int) : Any? {
-        return source.getRow(translateRow(rows, rowIndex))
-    }
+    override fun getRow(rowIndex : Int) : T = source.getRow(translateRow(rows, rowIndex))
 
 }
 
 /**
  * TODO
  */
-fun DataColumn.readOnlyView() : DataColumnView {
+fun <T> DataColumn<T>.readOnlyView() : DataColumnView<T> {
     return DataColumnView(this)
 }
 
 /**
  * TODO
  */
-fun DataColumn.readOnlyViewRows(rows: List<Int>) : DataColumnView {
+fun <T> DataColumn<T>.readOnlyViewRows(rows: List<Int>) : DataColumnView<T> {
     return DataColumnView(this, rows)
 }

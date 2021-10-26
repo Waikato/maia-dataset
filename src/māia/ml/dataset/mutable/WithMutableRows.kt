@@ -23,4 +23,10 @@ interface WithMutableRows<in Rin, out Rout> : WithIndexableRows<Rout> {
      */
     fun setRow(rowIndex : Int, value : Rin)
 
+    fun setRows(rowIndex : Int, values: Collection<Rin>)
+
+    fun clearRow(rowIndex : Int)
+
+    fun clearRows(rowIndex: Int, count: Int)
+
 }

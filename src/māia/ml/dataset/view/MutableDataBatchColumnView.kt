@@ -2,21 +2,40 @@ package māia.ml.dataset.view
 
 import māia.ml.dataset.mutable.MutableDataBatch
 import māia.ml.dataset.mutable.MutableDataColumn
+import māia.ml.dataset.type.DataRepresentation
 
 /**
  * A mutable view of a single column of a data-batch.
  *
+ * TODO: Reinstate.
+ *
  * @param source        The data-set to source values from.
  * @param columnIndex   The column to view.
- */
-class MutableDataBatchColumnView(
-        source : MutableDataBatch<*, *>,
-        columnIndex : Int
-) : DataBatchColumnView(source, columnIndex), MutableDataColumn {
-
-    override fun setRow(rowIndex : Int, value : Any?) {
-        (source as MutableDataBatch<*, *>).setValue(rowIndex, columnIndex, value)
+ *
+class MutableDataBatchColumnView<T>(
+        source : MutableDataBatch<*>,
+        representation : DataRepresentation<*, *, T>
+) : DataBatchColumnView<T>(source, representation), MutableDataColumn<T> {
+    
+    override val source: MutableDataBatch<*> = source
+    override val representation = representation
+    
+    override fun setRow(rowIndex : Int, value : T) {
+        source.setValue(representation, rowIndex, value)
     }
+
+    override fun setRows(rowIndex : Int, values : Collection<T>) {
+        values.forEachIndexed { index, value -> setRow(rowIndex + index, value) }
+    }
+
+    override fun clearRow(rowIndex : Int) {
+        source.clearValues(header.index)
+    }
+
+    override fun clearRows(rowIndex : Int, count : Int) {
+        TODO("Not yet implemented")
+    }
+
 
 }
 
@@ -26,3 +45,4 @@ class MutableDataBatchColumnView(
 fun MutableDataBatch<*, *>.mutableViewColumn(columnIndex : Int) : MutableDataBatchColumnView {
     return MutableDataBatchColumnView(this, columnIndex)
 }
+*/

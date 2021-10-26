@@ -1,10 +1,9 @@
 package māia.ml.dataset.view
 
-import māia.util.*
 import māia.util.datastructure.OrderedSet
 import māia.ml.dataset.*
-import māia.ml.dataset.mutable.MutableDataColumn
-import māia.ml.dataset.util.translateColumn
+import māia.ml.dataset.headers.ensureOwnership
+import māia.ml.dataset.type.DataRepresentation
 import māia.ml.dataset.util.translateRow
 
 /**
@@ -15,42 +14,27 @@ import māia.ml.dataset.util.translateRow
  * @param rows      The sub-set of rows to view, or null for all rows.
  */
 open class DataBatchView(
-        source : DataBatch<*, *>,
-        columns : OrderedSet<Int>? = null,
-        protected val rows : List<Int>? = null
-)
-    : DataStreamView(source, columns),
-        DataBatch<DataRowView, DataColumnView> {
+    source : DataBatch<*>,
+    columns : OrderedSet<Int>? = null,
+    protected val rows : List<Int>? = null
+) : DataStreamView(source, columns), DataBatch<DataRowView> {
 
-    /** The source cast to its actual type. */
-    protected open val castSource : DataBatch<*, *>
-        get() = source as DataBatch<*, *>
+    override fun <T> getColumn(representation : DataRepresentation<*, *, T>) : DataColumn<T> = DataBatchColumnView(source, representation)
 
-    override val metadata: DataMetadata
-        get() = source.metadata
-
-    override val numRows : Int
-        get() = rows?.size ?: castSource.numRows
-
-    override fun getRow(rowIndex : Int) : DataRowView = wrapRow(castSource.getRow(translateRow(rows, rowIndex)))
-
-    override fun getColumn(columnIndex : Int) : DataColumnView = wrapColumn(castSource.getColumn(translateColumn(columns, columnIndex)))
-
-    override fun getValue(rowIndex : Int, columnIndex : Int) : Any? = castSource.getValue(translateRow(rows, rowIndex), translateColumn(columns, columnIndex))
-
-    override fun rowIterator(): Iterator<DataRowView> = (0 until numRows).iterator().map { getRow(it) }
-
-    override fun getColumnHeader(columnIndex: Int): DataColumnHeader = source.getColumnHeader(translateColumn(columns, columnIndex))
-
-    /**
-     * TODO
-     */
-    protected fun wrapColumn(sourceColumn : DataColumn) : DataColumnView {
-        return if (sourceColumn is MutableDataColumn)
-            MutableDataColumnView(sourceColumn, rows)
-        else
-            DataColumnView(sourceColumn, rows)
+    override fun <T> getValue(
+        representation : DataRepresentation<*, *, out T>,
+        rowIndex : Int
+    ) : T  = headers.ensureOwnership(representation) {
+        source.getValue(representation, translateRow(rows, rowIndex))
     }
+
+    override val source : DataBatch<*> = source
+
+    override val numRows : Int = rows?.size ?: source.numRows
+
+    override fun getRow(rowIndex : Int) : DataRowView = wrapRow(source.getRow(translateRow(rows, rowIndex)))
+
+    override fun rowIterator() : Iterator<DataRowView> = super<DataBatch>.rowIterator()
 }
 
 /**
@@ -58,27 +42,27 @@ open class DataBatchView(
  *
  * TODO
  */
-fun DataBatch<*, *>.readOnlyView() : DataBatchView {
+fun DataBatch<*>.readOnlyView() : DataBatchView {
     return DataBatchView(this)
 }
 
 /**
  * TODO
  */
-fun DataBatch<*, *>.readOnlyView(rows : List<Int>, columns : OrderedSet<Int>) : DataBatchView {
+fun DataBatch<*>.readOnlyView(rows : List<Int>, columns : OrderedSet<Int>) : DataBatchView {
     return DataBatchView(this, columns, rows)
 }
 
 /**
  * TODO
  */
-fun DataBatch<*, *>.readOnlyViewColumns(columns : OrderedSet<Int>) : DataBatchView {
+fun DataBatch<*>.readOnlyViewColumns(columns : OrderedSet<Int>) : DataBatchView {
     return DataBatchView(this, columns)
 }
 
 /**
  * TODO
  */
-fun DataBatch<*, *>.readOnlyViewRows(rows : List<Int>) : DataBatchView {
+fun DataBatch<*>.readOnlyViewRows(rows : List<Int>) : DataBatchView {
     return DataBatchView(this, null, rows)
 }

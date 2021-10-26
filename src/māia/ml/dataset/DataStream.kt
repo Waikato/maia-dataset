@@ -10,5 +10,5 @@ package māia.ml.dataset
  */
 interface DataStream<out R : DataRow> :
         WithMetadata,
-        WithColumnHeaders,
+        WithColumns,
         WithRows<R>

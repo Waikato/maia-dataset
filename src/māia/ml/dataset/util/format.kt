@@ -1,18 +1,18 @@
 package māia.ml.dataset.util
 
 import māia.ml.dataset.DataRow
-import māia.util.enumerate
-import māia.util.joinToString
+import māia.ml.dataset.error.MissingValue
+import māia.ml.dataset.headers.header.DataColumnHeader
+import māia.ml.dataset.type.DataType
 
 /**
  * TODO
  */
 fun DataRow.formatString() : String {
-    return iterateColumnHeaders()
-            .enumerate()
-            .joinToString(prefix = "[", postfix = "]") { (index, header) ->
-                "${header.name}: ${header.type.convertToExternalUnchecked(getColumn(index))}"
-            }
+    return headers
+        .joinToString(prefix = "[", postfix = "]") { header ->
+            "${header.name}: ${formatValue(header)}"
+        }
 }
 
 /**
@@ -20,9 +20,39 @@ fun DataRow.formatString() : String {
  */
 fun DataRow.formatStringSimple() : String {
     return buildString {
-        forEachColumn { index, header, value ->
-            append(header.type.convertToExternalUnchecked(value))
+        forEachColumn { _, header ->
+            append(formatValue(header))
             append(",")
         }
+    }
+}
+
+/**
+ * Formats a value from a [DataRow] as a string.
+ *
+ * @receiver The [DataRow] to get the value from.
+ * @param header
+ *          A header from the [DataRow] selecting which value to format.
+ * @return A [String] representation of the value.
+ */
+inline fun DataRow.formatValue(
+    header: DataColumnHeader
+): String = formatValue(header.type)
+
+/**
+ * Formats a value from a [DataRow] as a string.
+ *
+ * @receiver The [DataRow] to get the value from.
+ * @param type
+ *          A data-type from the [DataRow] selecting which value to format.
+ * @return A [String] representation of the value.
+ */
+inline fun DataRow.formatValue(
+    type: DataType<*, *>
+): String {
+    return try {
+        getValue(type.canonicalRepresentation).toString()
+    } catch (e: MissingValue) {
+        "<missing>"
     }
 }

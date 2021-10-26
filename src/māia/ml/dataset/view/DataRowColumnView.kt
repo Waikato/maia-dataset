@@ -1,8 +1,10 @@
 package māia.ml.dataset.view
 
 import māia.ml.dataset.DataColumn
-import māia.ml.dataset.DataColumnHeader
 import māia.ml.dataset.DataRow
+import māia.ml.dataset.headers.header.DataColumnHeader
+import māia.ml.dataset.headers.header.DataColumnHeaderView
+import māia.ml.dataset.type.DataRepresentation
 
 /**
  * A read-only view of a single column from a row as
@@ -11,25 +13,24 @@ import māia.ml.dataset.DataRow
  * @param source        The source data-row.
  * @param columnIndex   The column of the row to view.
  */
-open class DataRowColumnView(
+open class DataRowColumnView<T>(
         protected val source : DataRow,
-        protected val columnIndex : Int
-) : DataColumn {
+        protected val representation: DataRepresentation<*, *, T>
+) : DataColumn<T> {
+    override val header : DataColumnHeader = DataColumnHeaderView(
+        representation.dataType.header,
+        0
+    )
 
     override val numRows : Int = 1
 
-    override val header : DataColumnHeader
-        get() = source.getColumnHeader(columnIndex)
-
-    override fun getRow(rowIndex : Int) : Any? {
-        return source.getColumn(columnIndex)
-    }
+    override fun getRow(rowIndex : Int) : T = source.getValue(representation)
 
 }
 
 /**
  * TODO
  */
-fun DataRow.readOnlyViewColumn(columnIndex : Int) : DataRowColumnView {
-    return DataRowColumnView(this, columnIndex)
+fun <T> DataRow.readOnlyViewColumn(representation: DataRepresentation<*, *, T>) : DataRowColumnView<T> {
+    return DataRowColumnView(this, representation)
 }

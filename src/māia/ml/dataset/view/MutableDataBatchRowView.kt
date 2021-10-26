@@ -6,9 +6,11 @@ import māia.ml.dataset.mutable.MutableDataRow
 /**
  * A mutable view of a single row of a data-batch.
  *
+ * TODO: Reinstate.
+ *
  * @param source    The data-set to source values from.
  * @param rowIndex  The row to view.
- */
+ *
 class MutableDataBatchRowView(
         source : MutableDataBatch<*, *>,
         rowIndex : Int
@@ -24,3 +26,4 @@ class MutableDataBatchRowView(
 fun MutableDataBatch<*, *>.mutableViewRow(rowIndex : Int) : MutableDataBatchRowView {
     return MutableDataBatchRowView(this, rowIndex)
 }
+*/

@@ -4,22 +4,24 @@ import māia.util.datastructure.OrderedSet
 import māia.ml.dataset.DataColumn
 import māia.ml.dataset.DataRow
 import māia.ml.dataset.mutable.MutableDataBatch
-import māia.ml.dataset.util.clone
+import māia.ml.dataset.type.DataRepresentation
 import māia.ml.dataset.util.translateColumn
 import māia.ml.dataset.util.translateRow
 
 /**
  * A mutable view of a sub-set of rows/columns from a data-batch.
  *
+ * TODO: Reinstate
+ *
  * @param source    The data-batch to source values from.
  * @param columns   The sub-set of columns to view, or null for all columns.
  * @param rows      The sub-set of rows to view, or null for all rows.
- */
+ *
 open class MutableDataBatchView(
-        source : MutableDataBatch<*, *>,
+        source : MutableDataBatch<*>,
         columns : OrderedSet<Int>? = null,
         rows : List<Int>? = null
-) : DataBatchView(source, columns, rows), MutableDataBatch<DataRowView, DataColumnView> {
+) : DataBatchView(source, columns, rows), MutableDataBatch<DataRowView> {
 
     override val castSource : MutableDataBatch<*, *>
         get() = source as MutableDataBatch<*, *>
@@ -38,6 +40,53 @@ open class MutableDataBatchView(
 
     override fun setColumn(columnIndex : Int, column : DataColumn) {
         MutableDataBatchColumnView(this, columnIndex).clone(column)
+    }
+
+    override fun <T> setColumn(
+        representation : DataRepresentation<*, *, in T>,
+        column : Collection<T>
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearColumn(columnIndex : Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun <T> setValue(
+        representation : DataRepresentation<*, *, in T>,
+        rowIndex : Int,
+        value : T
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun <T> setValues(
+        representation : DataRepresentation<*, *, in T>,
+        rowIndex : Int,
+        values : Collection<T>
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearValue(columnIndex : Int, rowIndex : Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearValues(columnIndex : Int, rowIndex : Int, count : Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun setRows(rowIndex : Int, values : Collection<DataRow>) {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearRow(rowIndex : Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearRows(rowIndex : Int, count : Int) {
+        TODO("Not yet implemented")
     }
 
 }
@@ -71,3 +120,4 @@ fun MutableDataBatch<*, *>.mutableViewColumns(columns : OrderedSet<Int>) : Mutab
 fun MutableDataBatch<*, *>.mutableViewRows(rows : List<Int>) : MutableDataBatchView {
     return MutableDataBatchView(this, null, rows)
 }
+*/

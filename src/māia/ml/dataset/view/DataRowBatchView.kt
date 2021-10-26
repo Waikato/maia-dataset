@@ -1,10 +1,13 @@
 package māia.ml.dataset.view
 
 import māia.ml.dataset.DataBatch
-import māia.ml.dataset.DataColumnHeader
+import māia.ml.dataset.DataColumn
 import māia.ml.dataset.DataMetadata
 import māia.ml.dataset.DataRow
+import māia.ml.dataset.headers.DataColumnHeaders
+import māia.ml.dataset.type.DataRepresentation
 import māia.ml.dataset.util.DummyMetadata
+import māia.util.ensureIndexInRange
 import māia.util.itemIterator
 
 /**
@@ -17,33 +20,14 @@ import māia.util.itemIterator
 open class DataRowBatchView<out R : DataRow>(
         protected val source : R,
         override val metadata : DataMetadata = DummyMetadata
-) : DataBatch<R, DataRowColumnView>{
-
+) : DataBatch<R> {
+    override val headers get() = source.headers
     override val numRows : Int = 1
-
-    override val numColumns : Int
-        get() = source.numColumns
-
-    override fun getValue(rowIndex : Int, columnIndex : Int) : Any? {
-        if (rowIndex != 0) throw IndexOutOfBoundsException(rowIndex)
-        return source.getColumn(columnIndex)
-    }
-
-    override fun getColumn(columnIndex : Int) : DataRowColumnView {
-        return DataRowColumnView(source, columnIndex)
-    }
-
-    override fun getRow(rowIndex : Int) : R {
-        return source
-    }
-
-    override fun getColumnHeader(columnIndex : Int) : DataColumnHeader {
-        return source.getColumnHeader(columnIndex)
-    }
-
-    override fun rowIterator() : Iterator<R> {
-        return itemIterator(source)
-    }
+    override val numColumns : Int get() = source.numColumns
+    override fun getRow(rowIndex : Int) : R = ensureIndexInRange(rowIndex, 1) { source }
+    override fun rowIterator() : Iterator<R> = itemIterator(source)
+    override fun <T> getColumn(representation : DataRepresentation<*, *, T>) : DataColumn<T> = DataRowColumnView(source, representation)
+    override fun <T> getValue(representation : DataRepresentation<*, *, out T>, rowIndex : Int) : T = ensureIndexInRange(rowIndex, 1) { source.getValue(representation) }
 }
 
 /**

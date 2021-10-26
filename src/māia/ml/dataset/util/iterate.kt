@@ -1,7 +1,8 @@
 package māia.ml.dataset.util
 
-import māia.ml.dataset.DataColumnHeader
 import māia.ml.dataset.DataRow
+import māia.ml.dataset.headers.header.DataColumnHeader
+import māia.util.inlineRangeForLoop
 
 /**
  * Iterates over all columns of a data-row.
@@ -13,14 +14,13 @@ import māia.ml.dataset.DataRow
  */
 inline fun DataRow.forEachColumn(
     start: Int = 0,
-    end: Int = numColumns,
-    block: (Int, DataColumnHeader, Any?) -> Unit
+    end: Int = headers.size,
+    block: (Int, DataColumnHeader) -> Unit
 ) {
-    for (columnIndex in start until end) {
+    inlineRangeForLoop(start, end) { columnIndex ->
         block(
             columnIndex,
-            getColumnHeader(columnIndex),
-            getColumn(columnIndex)
+            headers[columnIndex]
         )
     }
 }

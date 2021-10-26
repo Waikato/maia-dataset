@@ -2,13 +2,14 @@ package māia.ml.dataset.util
 
 /*
  * Module for building data-rows programmatically.
- */
+ *
+ * TODO: Reinstate.
+
 
 import māia.util.ElementIterator
 import māia.util.lambda
-import māia.ml.dataset.DataColumnHeader
 import māia.ml.dataset.DataRow
-import māia.ml.dataset.WithColumnHeaders
+import māia.ml.dataset.WithColumns
 
 /**
  * Builds a data-row using the provided functions. Doesn't check the values
@@ -85,7 +86,7 @@ fun buildRow(
  * @return
  *          The generated data-row.
  */
-inline fun WithColumnHeaders.buildRow(
+inline fun WithColumns.buildRow(
     cacheHeaders: Boolean = true,
     cacheData : Boolean = true,
     externalTypedData : Boolean = false,
@@ -158,3 +159,4 @@ inline fun WithColumnHeaders.buildRow(
 inline fun DataRow.cache() : DataRow {
     return buildRow(block = this::getColumn)
 }
+*/

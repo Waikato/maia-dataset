@@ -4,33 +4,32 @@ package māia.ml.dataset.util
  * Methods for clearing mutable structures.
  */
 
-import māia.ml.dataset.mutable.WithMutableColumnStructure
+import māia.ml.dataset.DataRow
+import māia.ml.dataset.mutable.MutableColumnStructureDataBatch
+import māia.ml.dataset.mutable.MutableColumnStructureDataRow
 import māia.ml.dataset.mutable.WithMutableRowStructure
 
-/**
- * Removes all columns from a data-structure with mutable
- * column structure.
- */
-fun WithMutableColumnStructure<*, *>.clearColumns() {
-    while (numColumns > 0)
-        deleteColumn(0)
-}
 
 /**
  * Removes all rows from data-structures with mutable
  * row structure.
  */
-fun WithMutableRowStructure<*, *>.clearRows() {
-    while (numRows > 0)
-        deleteRow(0)
+fun WithMutableRowStructure<*, *>.clearRows() = deleteRows(0, numRows)
+
+/**
+ * Removes all rows and columns from a data-row.
+ */
+fun <T> T.clear()
+where T : MutableColumnStructureDataRow, T : WithMutableRowStructure<*, *> {
+    clearColumns()
+    clearRows()
 }
 
 /**
- * Removes all rows and columns from data-structures with mutable
- * row/column structure.
+ * Removes all rows and columns from a data-batch.
  */
-fun <T> T.clear()
-where T : WithMutableColumnStructure<*, *>, T : WithMutableRowStructure<*, *> {
-    clearRows()
+fun <T, Rout> T.clear()
+        where T : MutableColumnStructureDataBatch<Rout>, T : WithMutableRowStructure<DataRow, Rout> {
     clearColumns()
+    clearRows()
 }

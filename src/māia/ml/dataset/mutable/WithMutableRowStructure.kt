@@ -22,6 +22,8 @@ interface WithMutableRowStructure<in Rin, out Rout> : WithMutableRows<Rin, Rout>
      */
     fun insertRow(rowIndex : Int, value : Rin)
 
+    fun insertRows(rowIndex: Int, values: Collection<Rin>)
+
     /**
      * Deletes the row at the given index.
      *
@@ -29,5 +31,7 @@ interface WithMutableRowStructure<in Rin, out Rout> : WithMutableRows<Rin, Rout>
      * @throws IndexOutOfBoundsException    If the index of the row is out of range.
      */
     fun deleteRow(rowIndex : Int)
+
+    fun deleteRows(rowIndex: Int, count: Int)
 
 }

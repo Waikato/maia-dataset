@@ -1,33 +1,16 @@
 package māia.ml.dataset
 
-import māia.util.ElementIterator
+import māia.ml.dataset.headers.DataColumnHeaders
 
 /**
- * Interface for structures which have columns, and those
- * columns can be retrieved.
- *
- * @param C     The type of column returned by this structure.
+ * Interface for structures which have a number of typed columns,
+ * but access is limited to the headers of those columns.
  */
-interface WithColumns<out C> :
-        WithColumnHeaders {
+interface WithColumns {
 
-    /**
-     * Gets a column of the structure.
-     *
-     * @param columnIndex                   The index of the column to get.
-     * @return                              The column.
-     * @throws IndexOutOfBoundsException    If the column index is not within range
-     *                                      for the structure.
-     */
-    fun getColumn(columnIndex : Int) : C
+    val headers: DataColumnHeaders
 
-    /**
-     * Iterates over the columns of this structure.
-     *
-     * @return  An iterator over the columns of the structure.
-     */
-    fun iterateColumns() : Iterator<C> {
-        // Default implementation is to call getColumn for every column index
-        return ElementIterator(this::getColumn, numColumns)
-    }
+    val numColumns: Int
+        get() = headers.size
+
 }

@@ -10,6 +10,7 @@ import māia.ml.dataset.DataRow
 import māia.ml.dataset.error.*
 import māia.ml.dataset.mutable.MutableDataColumn
 import māia.ml.dataset.mutable.MutableDataRow
+import māia.ml.dataset.type.DataRepresentation
 import māia.util.enumerate
 
 /**
@@ -20,9 +21,9 @@ import māia.util.enumerate
  * @throws DifferentColumnHeader    If the source column has a different header to the receiving column.
  * @throws DifferentRowStructure    If the number of rows in the source column is different to the receiving column.
  */
-fun MutableDataColumn.clone(other : DataColumn) {
+fun <T> MutableDataColumn<T>.clone(other : DataColumn<T>) {
     // Make sure the source column matches this column's structure
-    this mustHaveEquivalentStructureTo other
+    header mustBeSameTypeAs other.header
 
     // Copy the value from each row of the source to this data-column
     for ((rowIndex, value) in other.rowIterator().enumerate()) {
@@ -42,8 +43,11 @@ fun MutableDataRow.clone(other : DataRow) {
     this mustHaveEquivalentColumnStructureTo other
 
     // Copy the value from each row of the source to this data-row
-    for ((columnIndex, value) in other.iterateColumns().enumerate())
-        setColumn(columnIndex, value)
+    forEachColumn { index, header ->
+        val repr = header.type.canonicalRepresentation
+        val value = other.getValue(repr)
+        setValue(repr as DataRepresentation<*, *, in Any?>, value)
+    }
 }
 
 // TODO: MutableDataBatch

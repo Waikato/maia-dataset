@@ -6,8 +6,11 @@ package māia.ml.dataset.util
 
 import māia.ml.dataset.*
 import māia.ml.dataset.error.*
-import māia.util.all
-import māia.util.zip
+import māia.ml.dataset.headers.DataColumnHeaders
+import māia.ml.dataset.headers.header.DataColumnHeader
+import māia.ml.dataset.type.DataRepresentation
+import māia.ml.dataset.type.DataType
+import māia.util.indexInRange
 
 // region Type
 /**
@@ -18,7 +21,7 @@ import māia.util.zip
  * @return          True if the columns both have the same type,
  *                  false otherwise.
  */
-infix fun DataColumnHeader.isSameTypeAs(other : DataColumnHeader) = type == other.type
+inline infix fun DataColumnHeader.isSameTypeAs(other : DataColumnHeader) = type == other.type
 
 /**
  * Whether this column does not have the same type of data as another
@@ -28,7 +31,7 @@ infix fun DataColumnHeader.isSameTypeAs(other : DataColumnHeader) = type == othe
  * @return          False if the columns both have the same type,
  *                  true otherwise.
  */
-infix fun DataColumnHeader.isNotSameTypeAs(other : DataColumnHeader) = !(this isSameTypeAs other)
+inline infix fun DataColumnHeader.isNotSameTypeAs(other : DataColumnHeader) = !(this isSameTypeAs other)
 
 /**
  * Ensures that this column has the same type of data as another
@@ -37,7 +40,7 @@ infix fun DataColumnHeader.isNotSameTypeAs(other : DataColumnHeader) = !(this is
  * @param other     The column to compare type with.
  * @throws DifferentDataType    If the column types aren't the same.
  */
-infix fun DataColumnHeader.mustBeSameTypeAs(other : DataColumnHeader) {
+inline infix fun DataColumnHeader.mustBeSameTypeAs(other : DataColumnHeader) {
     if (this isNotSameTypeAs other)
         throw DifferentDataType()
 }
@@ -47,18 +50,6 @@ infix fun DataColumnHeader.mustBeSameTypeAs(other : DataColumnHeader) {
 // region Header
 
 /**
- * Whether this column header describes the same column as
- * another.
- *
- * @param other     The other column header.
- * @return          True if the column headers describe the same column,
- *                  false otherwise.
- */
-infix fun DataColumnHeader.isEquivalentTo(other : DataColumnHeader) : Boolean {
-    return name == other.name && type == other.type && isTarget == other.isTarget
-}
-
-/**
  * Whether this column header describes a different column to
  * another.
  *
@@ -66,7 +57,7 @@ infix fun DataColumnHeader.isEquivalentTo(other : DataColumnHeader) : Boolean {
  * @return          False if the column headers describe the same column,
  *                  true otherwise.
  */
-infix fun DataColumnHeader.isNotEquivalentTo(other : DataColumnHeader) = !(this isEquivalentTo other)
+inline infix fun DataColumnHeader.isNotEquivalentTo(other : DataColumnHeader) = !(this isEquivalentTo other)
 
 /**
  * Ensures that this column header describes the same column as
@@ -75,7 +66,7 @@ infix fun DataColumnHeader.isNotEquivalentTo(other : DataColumnHeader) = !(this 
  * @param other                     The other column header.
  * @throws DifferentColumnHeader    If the headers are not equivalent.
  */
-infix fun DataColumnHeader.mustBeEquivalentTo(other : DataColumnHeader) {
+inline infix fun DataColumnHeader.mustBeEquivalentTo(other : DataColumnHeader) {
     if (this isNotEquivalentTo other)
         throw DifferentColumnHeader()
 }
@@ -85,50 +76,14 @@ infix fun DataColumnHeader.mustBeEquivalentTo(other : DataColumnHeader) {
 // region Structure
 
 /**
- * Whether the structure of this column is equivalent in header and
- * size to another.
- *
- * @param other     The column to compare to.
- * @return          True if the structures are equivalent,
- *                  false if not.
- */
-infix fun DataColumn.hasEquivalentStructureTo(other : DataColumn) : Boolean {
-    return header isEquivalentTo other.header && this hasEquivalentRowStructureTo other
-}
-
-/**
- * Whether the structure of this column is different in header and/or
- * size to another.
- *
- * @param other     The column to compare to.
- * @return          False if the structures are equivalent,
- *                  true if not.
- */
-infix fun DataColumn.doesNotHaveEquivalentStructureTo(other : DataColumn) = !(this hasEquivalentStructureTo other)
-
-/**
- * Ensures the structure of this column is equivalent in header
- * and size to another.
- *
- * @param other                     The column to compare to.
- * @throws DifferentColumnHeader    If the headers differ.
- * @throws DifferentRowStructure    If the sizes differ.
- */
-infix fun DataColumn.mustHaveEquivalentStructureTo(other : DataColumn) {
-    header mustBeEquivalentTo other.header
-    this mustHaveEquivalentRowStructureTo other
-}
-
-
-/**
  * Checks if the structure of this data-dataset is the same as that of
  * another.
  *
- * @param other     The data-dataset to compare to.
+ * @param other     The data-set to compare to.
  * @return          True if the two data-sets have the same structure,
  *                  false if not.
  */
-infix fun DataBatch<*, *>.hasEquivalentStructureTo(other : DataBatch<*, *>) : Boolean {
+inline infix fun DataBatch<*>.hasEquivalentStructureTo(other : DataBatch<*>) : Boolean {
     return this hasEquivalentColumnStructureTo other && this hasEquivalentRowStructureTo other
 }
 
@@ -140,7 +95,7 @@ infix fun DataBatch<*, *>.hasEquivalentStructureTo(other : DataBatch<*, *>) : Bo
  * @return          False if the two data-sets have the same structure,
  *                  true if not.
  */
-infix fun DataBatch<*, *>.doesNotHaveEquivalentStructureTo(other : DataBatch<*, *>) = !(this hasEquivalentStructureTo other)
+inline infix fun DataBatch<*>.doesNotHaveEquivalentStructureTo(other : DataBatch<*>) = !(this hasEquivalentStructureTo other)
 
 /**
  * Ensures that the structure of this data-dataset is the same as that
@@ -150,7 +105,7 @@ infix fun DataBatch<*, *>.doesNotHaveEquivalentStructureTo(other : DataBatch<*, 
  * @throws DifferentColumnStructure     If the columns differ.
  * @throws DifferentRowStructure        If the number of rows differ.
  */
-infix fun DataBatch<*, *>.mustHaveEquivalentStructureTo(other : DataBatch<*, *>) {
+inline infix fun DataBatch<*>.mustHaveEquivalentStructureTo(other : DataBatch<*>) {
     this mustHaveEquivalentColumnStructureTo other
     this mustHaveEquivalentRowStructureTo other
 }
@@ -167,7 +122,7 @@ infix fun DataBatch<*, *>.mustHaveEquivalentStructureTo(other : DataBatch<*, *>)
  * @return          True if the structures have the same number of
  *                  rows, otherwise false.
  */
-infix fun WithIndexableRows<*>.hasEquivalentRowStructureTo(other : WithIndexableRows<*>) = numRows == other.numRows
+inline infix fun WithIndexableRows<*>.hasEquivalentRowStructureTo(other : WithIndexableRows<*>) = numRows == other.numRows
 
 /**
  * Whether the row-structure of this structure is different
@@ -177,7 +132,7 @@ infix fun WithIndexableRows<*>.hasEquivalentRowStructureTo(other : WithIndexable
  * @return          False if the structures have the same number of
  *                  rows, otherwise true.
  */
-infix fun WithIndexableRows<*>.doesNotHaveEquivalentRowStructureTo(other : WithIndexableRows<*>) = !(this hasEquivalentRowStructureTo other)
+inline infix fun WithIndexableRows<*>.doesNotHaveEquivalentRowStructureTo(other : WithIndexableRows<*>) = !(this hasEquivalentRowStructureTo other)
 
 /**
  * Ensures that the row-structure of some other structure is the
@@ -186,7 +141,7 @@ infix fun WithIndexableRows<*>.doesNotHaveEquivalentRowStructureTo(other : WithI
  * @param other                     The other structure with indexable rows.
  * @throws DifferentRowStructure    If the row-structures are different.
  */
-infix fun WithIndexableRows<*>.mustHaveEquivalentRowStructureTo(other : WithIndexableRows<*>) {
+inline infix fun WithIndexableRows<*>.mustHaveEquivalentRowStructureTo(other : WithIndexableRows<*>) {
     if (this doesNotHaveEquivalentRowStructureTo other)
         throw DifferentRowStructure()
 }
@@ -196,19 +151,25 @@ infix fun WithIndexableRows<*>.mustHaveEquivalentRowStructureTo(other : WithInde
 // region Column Structure
 
 /**
+ * Fast check to compare equality of headers.
+ *
+ * @param other
+ *          The other set of headers to compare to this one.
+ * @return
+ *          Whether the two headers are equal.
+ */
+inline infix fun DataColumnHeaders.isEquivalentTo(other: DataColumnHeaders): Boolean {
+    return identityToken === other.identityToken
+}
+
+/**
  * Checks if the two structures have the same columns in the same order.
  *
  * @param other     The other structure to compare to.
  * @return          True if the columns are the same, false if not.
  */
-infix fun WithColumnHeaders.hasEquivalentColumnStructureTo(other : WithColumnHeaders) : Boolean {
-    // Must have the same number of columns
-    if (numColumns != other.numColumns) return false
-
-    // Must be the same name/type in each column  position
-    return zip(iterateColumnHeaders(), other.iterateColumnHeaders()).all { (c1, c2) ->
-        c1 isEquivalentTo c2
-    }
+inline infix fun WithColumns.hasEquivalentColumnStructureTo(other : WithColumns) : Boolean {
+    return headers isEquivalentTo other.headers
 }
 
 /**
@@ -217,7 +178,7 @@ infix fun WithColumnHeaders.hasEquivalentColumnStructureTo(other : WithColumnHea
  * @param other     The other structure to compare to.
  * @return          False if the columns are the same, true if not.
  */
-infix fun WithColumnHeaders.doesNotHaveEquivalentColumnStructureTo(other : WithColumnHeaders) = !(this hasEquivalentColumnStructureTo other)
+inline infix fun WithColumns.doesNotHaveEquivalentColumnStructureTo(other : WithColumns) = !(this hasEquivalentColumnStructureTo other)
 
 /**
  * Ensures the given structure has the same columns as this structure.
@@ -225,9 +186,35 @@ infix fun WithColumnHeaders.doesNotHaveEquivalentColumnStructureTo(other : WithC
  * @param other                         The other structure to compare to.
  * @throws DifferentColumnStructure     If the columns aren't the same.
  */
-infix fun WithColumnHeaders.mustHaveEquivalentColumnStructureTo(other : WithColumnHeaders) {
+inline infix fun WithColumns.mustHaveEquivalentColumnStructureTo(other : WithColumns) {
     if (this doesNotHaveEquivalentColumnStructureTo other)
         throw DifferentColumnStructure()
+}
+
+// endregion
+
+// region Representation
+
+/**
+ * TODO
+ */
+inline infix fun DataRepresentation<*, *, *>.isNotEquivalentTo(
+    other: DataRepresentation<*, *, *>
+): Boolean {
+    return !(this isEquivalentTo other)
+}
+
+/**
+ * TODO: Comment
+ */
+inline fun <T> DataType<*, *>.getEquivalentRepresentation(
+    other: DataRepresentation<*, *, T>
+): DataRepresentation<*, *, T>? {
+    val representationIndex = other.representationIndex
+    if (!indexInRange(representationIndex, representations.size)) return null
+    val positionallyEquivalentRepresentation = representations[representationIndex]
+    if (positionallyEquivalentRepresentation isNotEquivalentTo other) return null
+    return positionallyEquivalentRepresentation as DataRepresentation<*, *, T>
 }
 
 // endregion

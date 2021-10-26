@@ -5,7 +5,12 @@ package māia.ml.dataset.util
  * which limit access to a sub-set of their source's rows/columns.
  */
 
+import māia.ml.dataset.headers.DataColumnHeaders
+import māia.util.datastructure.MutableOrderedSet
 import māia.util.datastructure.OrderedSet
+import māia.util.datastructure.buildOrderedSet
+import māia.util.ensureIndexInRange
+import māia.util.inlineRangeForLoop
 
 /**
  * Uses the provided column translation set to translate a source column
@@ -31,4 +36,17 @@ fun translateColumn(columns : OrderedSet<Int>?, columnIndex : Int) : Int {
  */
 fun translateRow(rows : List<Int>?, rowIndex : Int) : Int {
     return rows?.get(rowIndex) ?: rowIndex
+}
+
+/**
+ * TODO
+ */
+inline fun DataColumnHeaders.allColumnsExcept(
+    index: Int
+): MutableOrderedSet<Int> = ensureIndexInRange(index, size) {
+    return buildOrderedSet {
+        inlineRangeForLoop(this@allColumnsExcept.size) {
+            if (it != index) add(it)
+        }
+    }
 }

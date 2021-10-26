@@ -2,9 +2,11 @@ package māia.ml.dataset.view
 
 import māia.util.datastructure.OrderedHashSet
 import māia.util.datastructure.OrderedSet
-import māia.ml.dataset.DataColumnHeader
 import māia.ml.dataset.DataRow
-import māia.ml.dataset.util.translateColumn
+import māia.ml.dataset.headers.DataColumnHeadersView
+import māia.ml.dataset.headers.MutableDataColumnHeadersBase
+import māia.ml.dataset.headers.MutableDataColumnHeadersReadOnlyView
+import māia.ml.dataset.type.DataRepresentation
 
 /**
  * A read-only view of a sub-set of a data-row.
@@ -13,8 +15,8 @@ import māia.ml.dataset.util.translateColumn
  * @param columns   The columns of the row to view, or null for all columns.
  */
 open class DataRowView(
-        protected val source : DataRow,
-        protected val columns : OrderedSet<Int>? = null
+    source : DataRow,
+    protected val columns : OrderedSet<Int>? = null
 ) : DataRow {
 
     constructor(source : DataRow, columns : Iterator<Int>) : this(source, OrderedHashSet<Int>().also { set ->
@@ -23,17 +25,13 @@ open class DataRowView(
 
     constructor(source : DataRow, vararg columns : Int) : this(source, columns.iterator())
 
-    override val numColumns: Int
-        get() = columns?.size ?: source.numColumns
+    protected open val source = source
 
-    override fun getColumn(columnIndex : Int) : Any? {
-        return source.getColumn(translateColumn(columns, columnIndex))
+    override val headers = DataColumnHeadersView(source.headers, columns)
+
+    override fun <T> getValue(representation : DataRepresentation<*, *, out T>) : T {
+        return source.getValue(representation)
     }
-
-    override fun getColumnHeader(columnIndex: Int): DataColumnHeader {
-        return source.getColumnHeader(translateColumn(columns, columnIndex))
-    }
-
 }
 
 /**

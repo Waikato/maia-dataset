@@ -2,7 +2,10 @@ package māia.ml.dataset.view
 
 import māia.ml.dataset.DataBatch
 import māia.ml.dataset.DataColumn
-import māia.ml.dataset.DataColumnHeader
+import māia.ml.dataset.headers.ensureOwnership
+import māia.ml.dataset.headers.header.DataColumnHeader
+import māia.ml.dataset.headers.header.DataColumnHeaderView
+import māia.ml.dataset.type.DataRepresentation
 
 /**
  * A read-only view of a single column of a data-batch.
@@ -10,20 +13,24 @@ import māia.ml.dataset.DataColumnHeader
  * @param source        The data-set to source values from.
  * @param columnIndex   The column to view.
  */
-open class DataBatchColumnView(
-        protected val source : DataBatch<*, *>,
-        protected val columnIndex : Int
-) : DataColumn {
+class DataBatchColumnView<T>(
+    private val source : DataBatch<*>,
+    representation: DataRepresentation<*, *, out T>
+) : DataColumn<T> {
 
-    override val header : DataColumnHeader
-        get() = source.getColumnHeader(columnIndex)
+    /**
+     * The representational-type of the column (pre-translated into the owned
+     * equivalent for the source.
+     */
+    private val representation = source.headers.ensureOwnership(representation) { this }
+
+    override val header : DataColumnHeader =
+        DataColumnHeaderView(this.representation.dataType.header)
 
     override val numRows : Int
         get() = source.numRows
 
-    override fun getRow(rowIndex : Int) : Any? {
-        return source.getValue(rowIndex, columnIndex)
-    }
+    override fun getRow(rowIndex : Int) : T = source.getValue(representation, rowIndex)
 
 }
 
@@ -34,6 +41,8 @@ open class DataBatchColumnView(
  * @param columnIndex   The column to view.
  * @return              The view.
  */
-fun DataBatch<*, *>.readOnlyViewColumn(columnIndex : Int) : DataBatchColumnView {
-    return DataBatchColumnView(this, columnIndex)
+fun <T> DataBatch<*>.readOnlyViewColumn(
+    representation: DataRepresentation<*, *, out T>
+) : DataBatchColumnView<T> {
+    return DataBatchColumnView(this, representation)
 }

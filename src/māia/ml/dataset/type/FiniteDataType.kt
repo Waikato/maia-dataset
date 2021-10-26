@@ -1,29 +1,70 @@
 package māia.ml.dataset.type
 
+import māia.util.nextBigInteger
 import java.math.BigInteger
+import kotlin.random.Random
+
 
 /**
- * Interface for data-types which can only take one of a finite
- * number of values.
+ * Base-class for entropic representations of [FiniteDataType]s. This representation
+ * presents values as a [BigInteger] in the range [0, [FiniteDataType.entropy]),
+ * which uniquely maps to one of the finitely-many values in the data-type.
  *
- * @param I     The type used to represent values of this data-type in the data-set.
- * @param X     The type used to represent values of this data-type outside the data-set.
+ * @param Self See [DataRepresentation].
+ * @param N The type of [Nominal] that owns this representation.
  */
-interface FiniteDataType<I, X> : DataType<I, X> {
-
+abstract class EntropicRepresentation<
+        Self: EntropicRepresentation<Self, D>,
+        D: FiniteDataType<D, *, out Self>
+> : DataRepresentation<Self, D, BigInteger>() {
     /**
-     * Defines the amount of information in a value of this type. Should be
-     * equal to the number of possible values this data-type can take.
-     */
-    val entropy : BigInteger
-
-    /**
-     * Selects a value from this type.
+     * Produces a random value of this data-type, in its
+     * entropic representation.
      *
-     * @param selection                     A value to generate a selection from.
-     * @return                              A valid value for this data-type.
-     * @throws IndexOutOfBoundsException    If the [selection] is not in [0, [entropy]).
+     * @param source An optional source of randomness.
+     *
+     * @return A [BigInteger] in [0, [FiniteDataType.entropy]), selecting
+     *         a random value of this data-type.
      */
-    fun select(selection : BigInteger) : X
+    fun random(source : Random = Random.Default): BigInteger =
+        source.nextBigInteger(dataType.entropy)
 
+    final override fun isValid(value : BigInteger) : Boolean =
+        value >= BigInteger.ZERO && value < dataType.entropy
+
+    final override fun initial() : BigInteger =
+        BigInteger.ZERO
+}
+
+/**
+ * Base-class for data-types which can only take one of a finite number of values.
+ *
+ * @param canonicalRepresentation See [DataType].
+ * @param entropicRepresentation The entropic representation to use for this instance.
+ * @param supportsMissingValues See [DataType].
+ * @param entropy The number of possible values this data-type can take.
+ *
+ * @param Self See [DataType].
+ * @param C See [DataType].
+ * @param E The type of entropic representation this data-type uses.
+ */
+abstract class FiniteDataType<
+        Self: FiniteDataType<Self, C, E>,
+        C: DataRepresentation<C, Self, *>,
+        E: EntropicRepresentation<E, Self>
+>(
+    canonicalRepresentation: C,
+    entropicRepresentation : E,
+    supportsMissingValues: Boolean,
+    val entropy: BigInteger
+) : DataType<Self, C>(
+    canonicalRepresentation,
+    supportsMissingValues
+) {
+
+    /**
+     * Represents each unique value in this datatype as an integer
+     * in [0, [entropy]).
+     */
+    val entropicRepresentation: E by entropicRepresentation
 }
