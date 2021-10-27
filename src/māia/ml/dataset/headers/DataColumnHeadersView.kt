@@ -1,20 +1,15 @@
 package māia.ml.dataset.headers
 
-import māia.ml.dataset.error.UnownedRepresentationError
 import māia.ml.dataset.headers.header.DataColumnHeader
 import māia.ml.dataset.headers.header.DataColumnHeaderView
 import māia.ml.dataset.type.DataRepresentation
 import māia.ml.dataset.util.translateColumn
-import māia.util.collect
 import māia.util.datastructure.ConcurrentModificationManager
-import māia.util.datastructure.OrderedHashSet
 import māia.util.datastructure.OrderedSet
-import māia.util.datastructure.buildOrderedSet
 import māia.util.ensureHasNext
 import māia.util.ensureHasPrevious
 import māia.util.ensureIndexInRange
 import māia.util.ensureSublistRange
-import māia.util.eval
 import māia.util.indexInRange
 import māia.util.map
 
