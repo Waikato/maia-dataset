@@ -2,7 +2,6 @@ package māia.ml.dataset.headers
 
 import māia.util.all
 import māia.util.indexIterator
-import māia.util.inlineRangeForLoop
 
 /**
  * Common functionality for all implementations of [DataColumnHeaders].
@@ -29,8 +28,8 @@ sealed class DataColumnHeadersBase: DataColumnHeaders {
 
     final override fun hashCode() : Int {
         var result = 0
-        inlineRangeForLoop(size) {
-            result = 31 * result + this[it].hashCode()
+        for (header in this) {
+            result = 31 * result + header.hashCode()
         }
         return result
     }

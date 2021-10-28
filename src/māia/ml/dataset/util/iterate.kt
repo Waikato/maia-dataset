@@ -2,7 +2,6 @@ package māia.ml.dataset.util
 
 import māia.ml.dataset.DataRow
 import māia.ml.dataset.headers.header.DataColumnHeader
-import māia.util.inlineRangeForLoop
 
 /**
  * Iterates over all columns of a data-row.
@@ -17,7 +16,7 @@ inline fun DataRow.forEachColumn(
     end: Int = headers.size,
     block: (Int, DataColumnHeader) -> Unit
 ) {
-    inlineRangeForLoop(start, end) { columnIndex ->
+    for (columnIndex in start until end) {
         block(
             columnIndex,
             headers[columnIndex]

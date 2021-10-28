@@ -10,7 +10,6 @@ import māia.util.datastructure.MutableOrderedSet
 import māia.util.datastructure.OrderedSet
 import māia.util.datastructure.buildOrderedSet
 import māia.util.ensureIndexInRange
-import māia.util.inlineRangeForLoop
 
 /**
  * Uses the provided column translation set to translate a source column
@@ -45,8 +44,8 @@ inline fun DataColumnHeaders.allColumnsExcept(
     index: Int
 ): MutableOrderedSet<Int> = ensureIndexInRange(index, size) {
     return buildOrderedSet {
-        inlineRangeForLoop(this@allColumnsExcept.size) {
-            if (it != index) add(it)
+        for (columnIndex in this@allColumnsExcept.indices) {
+            if (columnIndex != index) add(columnIndex)
         }
     }
 }

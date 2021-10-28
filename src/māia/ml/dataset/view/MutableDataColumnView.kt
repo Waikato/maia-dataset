@@ -3,7 +3,6 @@ package māia.ml.dataset.view
 import māia.ml.dataset.mutable.MutableDataColumn
 import māia.ml.dataset.util.translateRow
 import māia.util.ensureIndexInRange
-import māia.util.inlineRangeForLoop
 
 /**
  * A mutable view of a data-column.
@@ -36,7 +35,7 @@ class MutableDataColumnView<T>(
 
     override fun clearRows(rowIndex : Int, count : Int) = ensureIndexInRange(rowIndex, numRows) {
         ensureIndexInRange(rowIndex + count, numRows, true) {
-            inlineRangeForLoop(rowIndex, rowIndex + count) { index ->
+            for (index in rowIndex until rowIndex + count) {
                 source.clearRow(translateRow(rows, index))
             }
         }

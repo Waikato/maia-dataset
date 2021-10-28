@@ -5,7 +5,6 @@ import māia.ml.dataset.headers.header.MutableDataColumnHeader
 import māia.ml.dataset.type.DataRepresentation
 import māia.ml.dataset.type.DataType
 import māia.util.doIfPresent
-import māia.util.inlineRangeForLoop
 import māia.util.map
 
 /**
@@ -111,7 +110,7 @@ class MutableDataColumnHeaders(
         nameToIndexMap.remove(name)
 
         // Update the indices and any representation caches
-        inlineRangeForLoop(index, names.size) {
+        for (it in index until names.size) {
             nameToIndexMap[names[it]] = it
             headersInternal[it].index = it
         }
@@ -141,7 +140,7 @@ class MutableDataColumnHeaders(
             index,
             createHeader(index, name, type, isTarget)
         )
-        inlineRangeForLoop(index, names.size) {
+        for (it in index until names.size) {
             nameToIndexMap[names[it]] = it
             headersInternal[it].index = it
         }
