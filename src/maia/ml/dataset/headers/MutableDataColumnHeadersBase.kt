@@ -32,7 +32,9 @@ sealed class MutableDataColumnHeadersBase:
     internal inline fun <R> changeStructure(
         crossinline block: () -> R
     ): R = concurrentModificationManager.performStructuralModification {
-        block().also { identityToken = HeadersIdentityToken[this] }
+        block().also {
+            identityToken = HeadersIdentityToken[this]
+        }
     }
 
     /**

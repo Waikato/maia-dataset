@@ -20,15 +20,17 @@ fun DataColumnHeaders.copy(
     val columnIterator = columns?.iterator() ?: indexIterator(size)
 
     // Add a copy of each header in this set to the new set
-    columnIterator                      // For each column
-        .map { this[it] }               // Get the header in this set
-        .enumerate()                    // Get its index in the new set
-        .forEach { (index, header) ->   // Create a copy of our header in the new set at the new index
-            val name = header.name
-            result.headersInternal.add(result.createHeader(index, name, header.type, header.isTarget))
-            result.names.add(name)
-            result.nameToIndexMap[name] = index
-        }
+    result.changeStructure {
+        columnIterator                      // For each column
+            .map { this[it] }               // Get the header in this set
+            .enumerate()                    // Get its index in the new set
+            .forEach { (index, header) ->   // Create a copy of our header in the new set at the new index
+                val name = header.name
+                result.headersInternal.add(result.createHeader(index, name, header.type, header.isTarget))
+                result.names.add(name)
+                result.nameToIndexMap[name] = index
+            }
+    }
 
     return result
 }

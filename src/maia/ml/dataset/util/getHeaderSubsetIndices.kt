@@ -17,7 +17,14 @@ fun WithColumns.getHeaderSubsetIndices(other : WithColumns) : MutableOrderedSet<
     return buildOrderedSet {
         for (header in headers) {
             add(
-                otherHeaders.indexOf(header).also { if (it < 0) throw DifferentColumnStructure() }
+                otherHeaders.find {
+                    // Can't use isEquivalentTo as indices differ in general
+                    it.name == header.name
+                            && it isSameTypeAs header
+                            && it.isTarget == header.isTarget
+                }.let {
+                    it?.index ?: throw DifferentColumnStructure()
+                }
             )
         }
     }
