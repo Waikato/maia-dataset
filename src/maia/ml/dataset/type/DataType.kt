@@ -3,8 +3,8 @@ package maia.ml.dataset.type
 import maia.ml.dataset.headers.header.HeaderIdentityToken
 import maia.ml.dataset.headers.header.MutableDataColumnHeader
 import maia.ml.dataset.headers.MutableDataColumnHeaders
+import maia.util.datastructure.ReadOnlyArray
 import maia.util.datastructure.readOnly
-import maia.util.error.UNREACHABLE_CODE
 import maia.util.property.SingleUseReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -27,7 +27,7 @@ abstract class DataType<
 ): SingleUseReadOnlyProperty<MutableDataColumnHeader, Self>() {
 
     /** All representations attached to the data-type. */
-    var representations = Array<DataRepresentation<*, Self, *>>(0) { UNREACHABLE_CODE("Array size is 0.") }.readOnly()
+    var representations: ReadOnlyArray<out DataRepresentation<*, Self, *>> = emptyArray<DataRepresentation<*, Self, *>>().readOnly()
         private set
 
     /** The fully-fledged representation of a value in this data-type. */
