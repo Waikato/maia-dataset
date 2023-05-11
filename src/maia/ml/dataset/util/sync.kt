@@ -19,6 +19,8 @@ fun <R : DataRow> AsyncDataStream<R>.sync(
     capacity: Int = Channel.RENDEZVOUS,
     onBufferOverflow: BufferOverflow = BufferOverflow.SUSPEND
 ): DataStream<R> {
+    // Check if it's already a synchronous stream
+    if (this is DataStream<R>) return this
 
     return object : DataStream<R> {
         override val headers : DataColumnHeaders
@@ -28,6 +30,5 @@ fun <R : DataRow> AsyncDataStream<R>.sync(
             get() = this@sync.metadata
 
         override fun rowIterator() : Iterator<R> = this@sync.rowFlow().sync(capacity, onBufferOverflow)
-
     }
 }

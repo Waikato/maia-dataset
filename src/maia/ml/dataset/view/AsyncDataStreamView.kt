@@ -7,6 +7,7 @@ import maia.util.datastructure.OrderedHashSet
 import maia.util.datastructure.OrderedSet
 import maia.ml.dataset.DataMetadata
 import maia.ml.dataset.DataRow
+import maia.ml.dataset.DataStream
 import maia.ml.dataset.headers.DataColumnHeadersView
 import maia.ml.dataset.mutable.MutableDataRow
 
@@ -55,9 +56,11 @@ open class AsyncDataStreamView(
 }
 
 fun AsyncDataStream<*>.readOnlyView() : AsyncDataStreamView {
+    if (this is DataStream<*>) return this.readOnlyView()
     return AsyncDataStreamView(this)
 }
 
 fun AsyncDataStream<*>.readOnlyViewColumns(columns : OrderedSet<Int>) : AsyncDataStreamView {
+    if (this is DataStream<*>) return this.readOnlyViewColumns(columns)
     return AsyncDataStreamView(this, columns)
 }

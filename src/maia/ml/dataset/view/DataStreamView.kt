@@ -1,6 +1,7 @@
 package maia.ml.dataset.view
 
 import kotlinx.coroutines.flow.Flow
+import maia.ml.dataset.DataBatch
 import maia.util.datastructure.OrderedHashSet
 import maia.util.datastructure.OrderedSet
 import maia.util.map
@@ -41,9 +42,11 @@ open class DataStreamView(
 }
 
 fun DataStream<*>.readOnlyView() : DataStreamView {
+    if (this is DataBatch<*>) this.readOnlyView()
     return DataStreamView(this)
 }
 
 fun DataStream<*>.readOnlyViewColumns(columns : OrderedSet<Int>) : DataStreamView {
+    if (this is DataBatch<*>) return this.readOnlyViewColumns(columns)
     return DataStreamView(this, columns)
 }
