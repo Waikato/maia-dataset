@@ -2,161 +2,126 @@ package maia.ml.dataset.util
 
 /*
  * Module for building data-rows programmatically.
- *
- * TODO: Reinstate.
+ */
 
-
-import maia.util.ElementIterator
-import maia.util.lambda
 import maia.ml.dataset.DataRow
-import maia.ml.dataset.WithColumns
+import maia.ml.dataset.error.MissingValue
+import maia.ml.dataset.error.checkMissingValueSupport
+import maia.ml.dataset.headers.MutableDataColumnHeaders
+import maia.ml.dataset.headers.ensureOwnership
+import maia.ml.dataset.type.DataRepresentation
+import maia.ml.dataset.type.DataType
 
 /**
- * Builds a data-row using the provided functions. Doesn't check the values
- * for type-conformance.
- *
- * @param size
- *          The number of columns to include in the data-row.
- * @param headerSupplier
- *          A function from column-index to column header.
- * @param dataSupplier
- *          A function from column-index to data-value.
- * @param cacheHeaders
- *          Whether to cache the headers at build time rather than retaining
- *          the [headerSupplier].
- * @param cacheData
- *          Whether to cache the data at build time rather than retaining
- *          the [dataSupplier].
- * @param externalTypedData
- *          Whether the data supplier is supplying data in the external type(s)
- *          or internal type(s) for the headers.
- * @return
- *          The built data-row.
+ * TODO: Comment
+ */
+class HeadersBuilder internal constructor(initialCapacity: Int? = null) {
+    val headers = MutableDataColumnHeaders(initialCapacity)
+
+    infix fun String.feature(type: DataType<*, *>) = headers.append(this, type, false)
+    infix fun String.target(type: DataType<*, *>) = headers.append(this, type, true)
+}
+
+/**
+ * TODO: Comment
+ */
+fun buildHeaders(
+    initialCapacity: Int? = null,
+    block: HeadersBuilder.() -> Unit
+): MutableDataColumnHeaders {
+    val builder = HeadersBuilder(initialCapacity)
+    builder.block()
+    return builder.headers
+}
+
+/**
+ * TODO: Comment
+ */
+class HeaderAndDataRowBuilder(
+) {
+    private val headers = MutableDataColumnHeaders()
+    private val values = ArrayList<Pair<DataRepresentation<*, *, in Any?>, Any?>?>()
+
+    inner class HeaderWithoutValue<T> private constructor(
+        name: String,
+        type: DataType<*, *>,
+        representation: DataRepresentation<*, *, T>?,
+        isTarget: Boolean
+    ) {
+        internal constructor(
+            name: String,
+            representation: DataRepresentation<*, *, T>,
+            isTarget: Boolean
+        ): this(name, representation.dataType, representation, isTarget)
+
+        internal constructor(
+            name: String,
+            type: DataType<*, *>,
+            isTarget: Boolean
+        ): this(name, type, null, isTarget)
+
+        private val representation: DataRepresentation<*, *, T>?
+
+        init {
+            this@HeaderAndDataRowBuilder.headers.append(name, type, isTarget)
+            this@HeaderAndDataRowBuilder.values.add(null)
+            this.representation = if (representation != null)
+                // Not-null safety: Just added the equivalent representation
+                this@HeaderAndDataRowBuilder.headers.ownedEquivalent(representation)!!
+            else
+                null
+        }
+
+        operator fun timesAssign(value: T) {
+            // Treating representation as Any? because we know the value's type matches
+            this@HeaderAndDataRowBuilder.values.add(
+                // Not-null safety: headerWithMissingValue ensures T == Nothing when representation == null
+                representation!!.columnIndex,
+                Pair(representation as DataRepresentation<*, *, Any?>, value)
+            )
+        }
+    }
+
+    infix fun <T> String.feature(representation: DataRepresentation<*, *, T>) =
+        HeaderWithoutValue(this, representation, false)
+    infix fun <T> String.target(representation: DataRepresentation<*, *, T>) =
+        HeaderWithoutValue(this, representation, true)
+
+    infix fun String.feature(type: DataType<*, *>) =
+        headerWithMissingValue(this, type, false)
+    infix fun String.target(type: DataType<*, *>) =
+        headerWithMissingValue(this, type, true)
+
+    internal fun toRow(): DataRow = object: DataRow {
+        override val headers = this@HeaderAndDataRowBuilder.headers.readOnlyView
+        private val values = this@HeaderAndDataRowBuilder.values.toTypedArray()
+
+        override fun <T> getValue(
+            representation : DataRepresentation<*, *, out T>
+        ) : T = headers.ensureOwnership(representation) {
+            val (inputRepr, value) = values[this.columnIndex] ?: throw MissingValue(this)
+            convert(value, inputRepr)
+        }
+    }
+
+    private fun headerWithMissingValue(
+        name: String,
+        type: DataType<*, *>,
+        isTarget: Boolean
+    ): HeaderWithoutValue<Nothing> {
+        type.checkMissingValueSupport()
+        return HeaderWithoutValue(name, type, isTarget)
+    }
+
+}
+
+/**
+ * TODO: Comment
  */
 fun buildRow(
-    size : Int,
-    headerSupplier: (Int) -> DataColumnHeader,
-    dataSupplier : (Int) -> Any?,
-    cacheHeaders: Boolean = true,
-    cacheData: Boolean = true,
-    externalTypedData: Boolean = false
-) : DataRow {
-    val headerCache = if (cacheHeaders) Array(size, headerSupplier) else null
-
-    val headerSupplierActual = if (headerCache !== null) headerCache::get else headerSupplier
-
-    val headerIteratorSupplier = if (headerCache !== null) headerCache::iterator else lambda { ElementIterator(headerSupplier, size) }
-
-    val internalDataSupplier = if (externalTypedData) { index -> headerSupplier(index).type.convertToInternalUnchecked(dataSupplier(index))} else dataSupplier
-
-    val dataCache = if (cacheData) Array(size, internalDataSupplier) else null
-
-    val dataSupplierActual = if (dataCache !== null) dataCache::get else internalDataSupplier
-
-    val dataIteratorSupplier = if (dataCache !== null) dataCache::iterator else lambda { ElementIterator(internalDataSupplier, size) }
-
-    return object : DataRow {
-        override val numColumns : Int = size
-        override fun getColumnHeader(columnIndex : Int) : DataColumnHeader = headerSupplierActual(columnIndex)
-        override fun getColumn(columnIndex : Int) : Any? = dataSupplierActual(columnIndex)
-        override fun iterateColumns() : Iterator<Any?> = dataIteratorSupplier()
-        override fun iterateColumnHeaders() : Iterator<DataColumnHeader> = headerIteratorSupplier()
-        override fun toString() : String = formatStringSimple()
-    }
+    block: HeaderAndDataRowBuilder.() -> Unit
+): DataRow {
+    val builder = HeaderAndDataRowBuilder()
+    builder.block()
+    return builder.toRow()
 }
-
-/**
- * Generates a data-row for the given headers using the
- * provided block of code.
- *
- * @receiver
- *          The columned data-structure to generate a row for.
- * @param cacheHeaders
- *          Whether to cache the headers at build time rather than indirecting
- *          to the receiver.
- * @param cacheData
- *          Whether to cache the data at build time rather than retaining the
- *          [block].
- * @param externalTypedData
- *          Whether the data supplier is supplying data in the external type(s)
- *          or internal type(s) for the headers.
- * @param block
- *          A function from (index, header) to the value for that position
- *          in the row.
- * @return
- *          The generated data-row.
- */
-inline fun WithColumns.buildRow(
-    cacheHeaders: Boolean = true,
-    cacheData : Boolean = true,
-    externalTypedData : Boolean = false,
-    noinline block : (Int) -> Any?
-) : DataRow {
-    return buildRow(
-        numColumns,
-        this::getColumnHeader,
-        block,
-        cacheHeaders,
-        cacheData,
-        externalTypedData
-    )
-}
-
-inline fun WithColumnHeaders.buildRow(
-    noinline block : (Int) -> Any?
-) : DataRow {
-    return buildRow(Array(numColumns, block))
-}
-
-inline fun WithColumnHeaders.buildRow(
-    data: Array<out Any?>
-) : DataRow {
-    return object : DataRow, WithColumnHeaders by this {
-        private val dataCache = data
-        override fun getColumn(columnIndex : Int) : Any? = dataCache[columnIndex]
-        override fun iterateColumns() : Iterator<Any?> = dataCache.iterator()
-    }
-}
-
-/**
- * Generates a data-row for the given headers using the
- * provided block of code.
- *
- * @receiver
- *          The columned data-structure to generate a row for.
- * @param cacheHeaders
- *          Whether to cache the headers at build time rather than indirecting
- *          to the receiver.
- * @param cacheData
- *          Whether to cache the data at build time rather than retaining the
- *          [block].
- * @param externalTypedData
- *          Whether the data supplier is supplying data in the external type(s)
- *          or internal type(s) for the headers.
- * @param block
- *          A function from (index, header) to the value for that position
- *          in the row.
- * @return
- *          The generated data-row.
- */
-inline fun WithColumnHeaders.buildRow(
-    cacheHeaders: Boolean = true,
-    cacheData : Boolean = true,
-    externalTypedData : Boolean = false,
-    crossinline block : (Int, DataColumnHeader) -> Any?
-) : DataRow {
-    return buildRow(cacheHeaders, cacheData, externalTypedData) { index ->
-        block(index, getColumnHeader(index))
-    }
-}
-
-/**
- * Creates a cache of the current state of a data-row.
- *
- * @receiver    The row to cache.
- * @return      The row-cache.
- */
-inline fun DataRow.cache() : DataRow {
-    return buildRow(block = this::getColumn)
-}
-*/
