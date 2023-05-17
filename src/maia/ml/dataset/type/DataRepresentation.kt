@@ -5,7 +5,6 @@ import maia.ml.dataset.error.InvalidValue
 import maia.ml.dataset.error.UnownedRepresentationError
 import maia.ml.dataset.headers.header.HeaderIdentityToken
 import maia.ml.dataset.util.getEquivalentRepresentation
-import maia.util.discard
 import maia.util.ensure
 import maia.util.pass
 import maia.util.property.SingleUseReadOnlyProperty
