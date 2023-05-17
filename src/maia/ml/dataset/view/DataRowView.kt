@@ -4,8 +4,6 @@ import maia.util.datastructure.OrderedHashSet
 import maia.util.datastructure.OrderedSet
 import maia.ml.dataset.DataRow
 import maia.ml.dataset.headers.DataColumnHeadersView
-import maia.ml.dataset.headers.MutableDataColumnHeadersBase
-import maia.ml.dataset.headers.MutableDataColumnHeadersReadOnlyView
 import maia.ml.dataset.type.DataRepresentation
 
 /**
