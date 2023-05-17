@@ -14,6 +14,10 @@ class MissingValue: Exception {
     ): super(message(representation))
 
     constructor(
+        cause: Throwable
+    ): super(cause)
+
+    constructor(
         representation: DataRepresentation<*, *, *>,
         cause: Throwable
     ): super(message(representation), cause)
