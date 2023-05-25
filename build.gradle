@@ -7,4 +7,7 @@ version '1.0-SNAPSHOT'
 
 dependencies {
     api "maia:maia-util"
+
+    testImplementation "maia:maia-standard-types"
 }
+
