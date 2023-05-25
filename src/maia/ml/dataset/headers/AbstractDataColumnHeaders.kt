@@ -6,7 +6,7 @@ import maia.util.indexIterator
 /**
  * Common functionality for all implementations of [DataColumnHeaders].
  */
-sealed class DataColumnHeadersBase: DataColumnHeaders {
+sealed class AbstractDataColumnHeaders: DataColumnHeaders {
 
     /** Keeps track of the mapping from a header's name to its index for fast lookup by name. */
     internal abstract val nameToIndexMap: Map<String, Int>

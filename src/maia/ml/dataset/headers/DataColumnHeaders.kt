@@ -5,7 +5,12 @@ import maia.ml.dataset.headers.header.DataColumnHeader
 import maia.ml.dataset.type.DataRepresentation
 
 /**
- * TODO: What class does.
+ * Defines the public interface for a set of dataset [headers][DataColumnHeader].
+ *
+ * Provides an ["identity token"][HeadersIdentityToken], which allows sets of
+ * headers to be quickly compared for equality. Also provides translation from
+ * an arbitrary [data-representation][DataRepresentation] to the equivalent
+ * representation held by the headers.
  *
  * @author Corey Sterling (csterlin at waikato dot ac dot nz)
  */
@@ -14,7 +19,6 @@ sealed interface DataColumnHeaders:
     Map<String, DataColumnHeader>,
     WithColumns
 {
-
     /** The token which uniquely identifies these headers. */
     val identityToken: HeadersIdentityToken
 

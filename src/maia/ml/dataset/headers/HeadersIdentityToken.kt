@@ -1,30 +1,41 @@
 package maia.ml.dataset.headers
 
-import maia.ml.dataset.error.UnownedRepresentationError
 import maia.ml.dataset.headers.header.DataColumnHeader
 import maia.ml.dataset.headers.header.HeaderIdentityToken
 import maia.ml.dataset.type.DataRepresentation
 import maia.util.RandomAccessListIterator
 import maia.util.RandomAccessSubList
 import maia.util.map
+import maia.util.readOnly
 import java.lang.ref.WeakReference
 import java.util.*
 import kotlin.collections.HashMap
 
 /**
- * TODO: What class does.
+ * Token class which caches equality checks amongst sets of headers. Each
+ * instance represents a unique combination of headers, and only one instance
+ * can exist for each combination. Therefore, sets of headers can hold onto the
+ * token representing their own headers, and equality between headers boils
+ * down to checking they hold the same token.
  *
  * @author Corey Sterling (csterlin at waikato dot ac dot nz)
  */
 class HeadersIdentityToken private constructor(
-    vararg val headerTokens: HeaderIdentityToken
-): DataColumnHeadersBase() {
+    private vararg val headerTokens: HeaderIdentityToken
+): AbstractDataColumnHeaders() {
 
-    override val names : List<String> = headerTokens.map { it.name }
+    override val names : List<String> = headerTokens.map { it.name }.readOnly()
 
-    override val nameToIndexMap : Map<String, Int> = HashMap<String, Int>().apply { names.forEachIndexed { index, name -> set(name, index) } }
+    override val nameToIndexMap : Map<String, Int> =
+        HashMap<String, Int>().apply {
+            names.forEachIndexed { index, name ->
+                set(name, index)
+            }
+        }.readOnly()
 
-    override val identityToken : HeadersIdentityToken = this
+    @Suppress("OVERRIDE_BY_INLINE")
+    override inline val identityToken : HeadersIdentityToken
+        get() = this
 
     override fun <T> ownedEquivalent(
         representation : DataRepresentation<*, *, T>
@@ -52,7 +63,8 @@ class HeadersIdentityToken private constructor(
         private val cache = WeakHashMap<DataColumnHeaders, WeakReference<HeadersIdentityToken>>()
     }
 
-    // List/Map methods
+    // region List/Map methods
+
     override fun contains(element : DataColumnHeader) : Boolean = element.index.let { it < size && element isEquivalentTo this[it] }
     override fun containsAll(elements : Collection<DataColumnHeader>) : Boolean = elements.all { contains(it) }
     override fun get(key : String) : DataColumnHeader? = nameToIndexMap[key]?.let { this[it] }
@@ -81,4 +93,6 @@ class HeadersIdentityToken private constructor(
             }
         }
     }
+
+    // endregion
 }

@@ -1,21 +1,19 @@
 package maia.ml.dataset.headers
 
-import maia.ml.dataset.error.UnownedRepresentationError
 import maia.ml.dataset.headers.header.DataColumnHeaderView
 import maia.ml.dataset.headers.header.HeaderIdentityToken
 import maia.ml.dataset.headers.header.MutableDataColumnHeader
-import maia.ml.dataset.type.DataRepresentation
 import maia.util.datastructure.ConcurrentModificationManager
 import maia.util.ensureIndexInRange
 import maia.util.error.UNREACHABLE_CODE
 
 /**
- * TODO: What class does.
+ * Base-class for headers which can mutate (add/remove columns, or change
+ * column names, types, target-status).
  *
  * @author Corey Sterling (csterlin at waikato dot ac dot nz)
  */
-sealed class MutableDataColumnHeadersBase:
-    DataColumnHeadersBase(), DataColumnHeaders {
+sealed class AbstractMutableDataColumnHeaders: AbstractDataColumnHeaders() {
 
     abstract override val nameToIndexMap: MutableMap<String, Int>
 
@@ -73,7 +71,7 @@ sealed class MutableDataColumnHeadersBase:
      * @param newName
      *          The new name the header is taking.
      */
-    open fun changeName(
+    fun changeName(
         columnIndex: Int,
         newName: String
     ) {
@@ -85,6 +83,9 @@ sealed class MutableDataColumnHeadersBase:
             when (val header = this[columnIndex]) {
                 is MutableDataColumnHeader -> header.name = newName
                 is DataColumnHeaderView -> header.name = newName
+                is HeaderIdentityToken -> UNREACHABLE_CODE(
+                    "HeaderIdentityTokens are only held by HeadersIdentityTokens, " +
+                            "which is not a sub-class of ${AbstractMutableDataColumnHeaders::class.qualifiedName}")
             }
             nameToIndexMap.remove(oldName)
             nameToIndexMap[newName] = columnIndex
@@ -100,7 +101,7 @@ sealed class MutableDataColumnHeadersBase:
      * @param newIsTarget
      *          The new target status the header is taking.
      */
-    open fun changeIsTarget(
+    fun changeIsTarget(
         columnIndex: Int,
         newIsTarget: Boolean
     ) = ensureIndexInRange(columnIndex, size) {
@@ -113,7 +114,7 @@ sealed class MutableDataColumnHeadersBase:
                 is DataColumnHeaderView -> header.isTarget = newIsTarget
                 is HeaderIdentityToken -> UNREACHABLE_CODE(
                     "HeaderIdentityTokens are only held by HeadersIdentityTokens, " +
-                            "which is not a sub-class of MutableDataColumnHeadersBase")
+                            "which is not a sub-class of ${AbstractMutableDataColumnHeaders::class.qualifiedName}")
             }
         }
     }

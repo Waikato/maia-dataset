@@ -8,9 +8,9 @@ import java.util.*
  * Token class which caches equality checks amongst headers. Each instance
  * represents a unique combination of ([index], [name], [type], [isTarget]),
  * and only one instance can exist for each combination. Therefore, headers
- * can hold onto the token representing their own settings for the aforementioned
- * attributes, and equality between headers boils down to check they hold the
- * same token.
+ * can hold onto the token representing their own settings for the
+ * aforementioned attributes, and equality between headers boils down to
+ * checking they hold the same token.
  *
  * @author Corey Sterling (csterlin at waikato dot ac dot nz)
  */
@@ -22,9 +22,8 @@ class HeaderIdentityToken private constructor(
 ): DataColumnHeader() {
 
     @Suppress("OVERRIDE_BY_INLINE")
-    override inline var identityToken : HeaderIdentityToken
+    override inline val identityToken : HeaderIdentityToken
         get() = this
-        set(value) {}
 
     companion object Cache {
         /**
@@ -48,6 +47,6 @@ class HeaderIdentityToken private constructor(
         }
 
         /** The cache of known identity tokens. */
-        private val cache = WeakHashMap<DataColumnHeader, WeakReference<HeaderIdentityToken>>()
+        private val cache = WeakHashMap<HeaderIdentityToken, WeakReference<HeaderIdentityToken>>()
     }
 }

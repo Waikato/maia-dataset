@@ -14,15 +14,18 @@ import maia.util.indexInRange
 import maia.util.map
 
 /**
- * A read-only view of a mutable set of column headers.
+ * A view of a set of column headers. Will automatically invalidate if the
+ * underlying source headers changes structure.
  *
  * @param source
  *          The source set of column headers.
+ * @param columns
+ *          The mapping from view column to source column.
  */
 class DataColumnHeadersView(
     private val source : DataColumnHeaders,
     private val columns : OrderedSet<Int>? = null
-): MutableDataColumnHeadersBase() {
+): AbstractMutableDataColumnHeaders() {
 
     init {
         columns?.let { columns ->
@@ -38,11 +41,14 @@ class DataColumnHeadersView(
     override val nameToIndexMap = HashMap<String, Int>(headersInternal.size)
     override val names = ArrayList<String>(headersInternal.size)
 
-    /** Take a snapshot of our source when we were created, to invalidate this view
-    when the source changes. */
-    private val sourceSnapshot = when (source) {
-        is MutableDataColumnHeadersBase -> source.concurrentModificationManager.View()
-        is MutableDataColumnHeadersReadOnlyView -> source.source.concurrentModificationManager.View()
+    /**
+     * Take a snapshot of our source when we were created, to invalidate this view
+     * when the source changes.
+     */
+    internal val sourceSnapshot: ConcurrentModificationManager.View? = when (source) {
+        is DataColumnHeadersView -> source.concurrentModificationManager.View(source.sourceSnapshot)
+        is MutableDataColumnHeaders -> source.concurrentModificationManager.View()
+        is MutableDataColumnHeaders.ReadOnlyView -> source.source.concurrentModificationManager.View()
         is HeadersIdentityToken -> null
     }
 
@@ -73,7 +79,7 @@ class DataColumnHeadersView(
      *          The action to perform if there haven't been any changes.
      */
     internal inline fun <R> ConcurrentModificationManager.View.checkForChanges(
-        crossinline block: () -> R
+        block: () -> R
     ): R = checkForStructuralModification(block)
 
     /**
@@ -98,7 +104,7 @@ class DataColumnHeadersView(
             sourceEquivalent
     }
 
-    // List/Map method implementations
+    // region List/Map method implementations
 
     override val size : Int get() = checkForSourceChanges { headersInternal.size }
     override fun iterator() : Iterator<DataColumnHeaderView> = listIterator()
@@ -187,4 +193,6 @@ class DataColumnHeadersView(
             }
         }
     }
+
+    // endregion
 }

@@ -8,11 +8,11 @@ import maia.util.doIfPresent
 import maia.util.map
 
 /**
- * TODO
+ * An owned set of column headers, which can be added to or removed from.
  */
 class MutableDataColumnHeaders(
     initialCapacity: Int? = null
-): MutableDataColumnHeadersBase() {
+): AbstractMutableDataColumnHeaders() {
 
     /** Keeps track of the mapping from a header's name to its index for fast lookup by name. */
     override val nameToIndexMap: HashMap<String, Int> = initialCapacity?.let { HashMap(it) } ?: HashMap()
@@ -24,7 +24,7 @@ class MutableDataColumnHeaders(
     internal val headersInternal: ArrayList<MutableDataColumnHeader> = initialCapacity?.let { ArrayList(it) } ?: ArrayList()
 
     /** Gets a read-only view of these headers. */
-    val readOnlyView: DataColumnHeaders = MutableDataColumnHeadersReadOnlyView(this)
+    val readOnlyView: DataColumnHeaders = ReadOnlyView()
 
     // Initialise the identity token
     init { identityToken = HeadersIdentityToken[this] }
@@ -52,27 +52,56 @@ class MutableDataColumnHeaders(
         nameToIndexMap[name] = index
     }
 
+    /**
+     * Checks if the given name/index corresponds to an existing header.
+     *
+     * @param name
+     *          The name of the header.
+     * @param index
+     *          Optionally, the index of the header. If this is present, the
+     *          header with the given name is checked that it is at this index.
+     *          If omitted, the index of the header is not checked.
+     * @throws IllegalArgumentException
+     *          If no header has the given name, or if an index is given, the
+     *          header is not at that index.
+     * @return
+     *          The index of the header with the given name (equals [index], if
+     *          given).
+     */
     fun checkDelete(name: String, index: Int? = null): Int {
+        // If the name is present, (optionally check and) return its index
         nameToIndexMap.doIfPresent(name) { indexActual ->
             if (index != null && index != indexActual)
                 throw IllegalArgumentException("Header $name is at index $indexActual, not $index")
             return indexActual
         }
 
+        // Name not present
         throw IllegalArgumentException("Unknown header name: $name")
     }
 
-    fun delete(name: String, index: Int? = null): Int {
-        val indexActual = checkDelete(name,  index)
-        deleteInternal(indexActual, name)
-        return indexActual
-    }
-
+    /**
+     * Checks if the given index/name corresponds to an existing header.
+     *
+     * @param index
+     *          The index of the header.
+     * @param name
+     *          Optionally, the name of the header. If this is present, the
+     *          header with the given index is checked that it has this name.
+     *          If omitted, the name of the header is not checked.
+     * @throws IllegalArgumentException
+     *          If no header is at the given index, or if a name is given, the
+     *          header does not have that [name].
+     * @return The name of the header at the given index (equals [name], if
+     *         given).
+     */
     fun checkDelete(index: Int, name: String? = null): String {
+        // Check the index is in bounds
         if (index < 0 || index >= size) {
             throw IllegalArgumentException("Index must be in [0, $size), got $index")
         }
 
+        // Check the name is valid if given
         return when (name) {
             null -> names[index]
             !in nameToIndexMap -> throw IllegalArgumentException("Unknown header name: $name")
@@ -85,6 +114,44 @@ class MutableDataColumnHeaders(
         }
     }
 
+    /**
+     * Deletes the header with the given name/index.
+     *
+     * @param name
+     *          The name of the header.
+     * @param index
+     *          Optionally, the index of the header. If this is present, the
+     *          header with the given name is checked that it is at this index.
+     *          If omitted, the index of the header is not checked.
+     * @throws IllegalArgumentException
+     *          If no header has the given name, or if an index is given, the
+     *          header is not at that index.
+     * @return
+     *          The index of the header with the given name (equals [index], if
+     *          given), before deletion.
+     */
+    fun delete(name: String, index: Int? = null): Int {
+        val indexActual = checkDelete(name,  index)
+        deleteInternal(indexActual, name)
+        return indexActual
+    }
+
+
+    /**
+     * Deletes the header with the given index/name.
+     *
+     * @param index
+     *          The index of the header.
+     * @param name
+     *          Optionally, the name of the header. If this is present, the
+     *          header with the given index is checked that it has this name.
+     *          If omitted, the name of the header is not checked.
+     * @throws IllegalArgumentException
+     *          If no header is at the given index, or if a name is given, the
+     *          header does not have that [name].
+     * @return The name of the header at the given index (equals [name], if
+     *         given), before deletion.
+     */
     fun delete(index: Int, name: String? = null): String {
         val nameActual = checkDelete(index, name)
         deleteInternal(index, nameActual)
@@ -206,7 +273,14 @@ class MutableDataColumnHeaders(
         )
     }
 
-    // List/Map method implementations
+    /**
+     * A read-only view of a set of mutable data-column headers.
+     */
+    inner class ReadOnlyView: DataColumnHeaders by this@MutableDataColumnHeaders {
+        internal val source = this@MutableDataColumnHeaders
+    }
+
+    // region List/Map method implementations
 
     override val size : Int get() = headersInternal.size
     override fun iterator() : Iterator<MutableDataColumnHeader> = headersInternal.iterator()
@@ -248,4 +322,6 @@ class MutableDataColumnHeaders(
             }
         }
     }
+
+    // endregion
 }

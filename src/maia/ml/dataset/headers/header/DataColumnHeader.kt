@@ -3,14 +3,17 @@ package maia.ml.dataset.headers.header
 import maia.ml.dataset.type.DataType
 
 /**
- * The base class for a single header to a data-column. Ensures equality
- * between them.
+ * The base class for a single header to a column in a dataset.
  *
- * The header describes the data in the column of a data-set, including:
+ * A header describes the data in a column of a data-set, including:
  *  - the index of the column.
  *  - the name of the column.
- *  - the type of data in the column.
+ *  - the [type][DataType] of data in the column.
  *  - whether the column is feature data or target data.
+ *
+ * This base class determines equality between headers, and provides an
+ * ["identity token"][HeaderIdentityToken], which allows for fast comparison
+ * between headers for equivalency.
  *
  * @author Corey Sterling (csterlin at waikato dot ac dot nz)
  */
@@ -32,11 +35,12 @@ sealed class DataColumnHeader {
     abstract val isTarget : Boolean
 
     /** A token for fast equality checks. */
-    open lateinit var identityToken: HeaderIdentityToken
-        protected set
+    abstract val identityToken: HeaderIdentityToken
 
-    /** String-representation of the header's target status.
-        T = target, F = feature */
+    /**
+     * String-representation of the header's target status.
+     * T = target, F = feature.
+     */
     val targetString: String
         get() = if (isTarget) "T" else "F"
 
